@@ -13,7 +13,7 @@ if (!isset($_SESSION['client_id'])) {
 $client_name = $_SESSION['client_name'];
 
 // Fetch orders history joining sales and products tables
-$query = "SELECT s.*, p.name AS product_name FROM sales s JOIN products p ON s.product_id = p.id ORDER BY s.id DESC";
+$query = "SELECT s.*, p.name AS product_name FROM sales s JOIN products p ON s.product_id = p.id WHERE s.customer_id = '$client_id' ORDER BY s.id DESC";
 $orders = $conn->query($query);
 ?>
 <!DOCTYPE html>

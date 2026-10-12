@@ -13,6 +13,14 @@ if ($conn->connect_error) {
 
 $message = "";
 
+// Handle Delete Request for Individual Sales
+if (isset($_GET['delete'])) {
+    $sale_id = intval($_GET['delete']);
+    $conn->query("DELETE FROM sales WHERE id = $sale_id");
+    header("Location: sales.php");
+    exit();
+}
+
 // Handle Form Submission for New Sale
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $product_id  = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
@@ -45,11 +53,12 @@ if ($sum_query && $row = $sum_query->fetch_assoc()) {
     $total_items_sold   = $row['items_sum'] ?? 0;
 }
 
-// Fetch All Sales Joining Products Table
+// Fetch All Sales Joining Products and Customers Tables
 $sales_list = $conn->query("
-    SELECT s.*, p.name AS product_name 
+    SELECT s.*, p.name AS product_name, c.name AS customer_name 
     FROM sales s 
     LEFT JOIN products p ON s.product_id = p.id 
+    LEFT JOIN customers c ON s.customer_id = c.id 
     ORDER BY s.id DESC
 ");
 ?>
@@ -152,20 +161,26 @@ $sales_list = $conn->query("
                 <thead>
                     <tr>
                         <th>Sale ID</th>
+                        <th>Customer</th>
                         <th>Product</th>
                         <th>Quantity</th>
                         <th>Sale Date</th>
                         <th>Total Amount</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($s = $sales_list->fetch_assoc()): ?>
                         <tr>
                             <td>#<?php echo $s['id']; ?></td>
+                            <td><strong><?php echo htmlspecialchars($s['customer_name'] ?? 'Walk-in / Admin'); ?></strong></td>
                             <td><strong><?php echo htmlspecialchars($s['product_name'] ?? ('Product #' . $s['product_id'])); ?></strong></td>
                             <td><?php echo $s['quantity']; ?></td>
                             <td><?php echo date("d M Y", strtotime($s['sale_date'])); ?></td>
                             <td><strong>₹<?php echo number_format($s['total'], 2); ?></strong></td>
+                            <td>
+                                <a href="sales.php?delete=<?php echo $s['id']; ?>" onclick="return confirm('Are you sure you want to delete this sale?');" style="color: #ef4444; text-decoration: none; font-weight: 600;">Delete</a>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>

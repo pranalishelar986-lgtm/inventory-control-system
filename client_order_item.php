@@ -38,14 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($quantity > $product['quantity']) {
         $error = "Requested quantity exceeds available stock (" . $product['quantity'] . " available).";
     } else {
-        $total = $quantity * $unit_price;
-        // Old Query Line:
-// $insert_stmt = $conn->prepare("INSERT INTO sales (product_id, quantity, unit_price, total) VALUES (?, ?, ?, ?)");
+  $total = $quantity * $unit_price;
+        $customer_id = $_SESSION['client_id']; // Get the client ID from session
 
-// Replace with this New Query Line:
-$insert_stmt = $conn->prepare("INSERT INTO sales (product_id, quantity, unit_price, total, sale_date) VALUES (?, ?, ?, ?, NOW())");
+        // Update query to include customer_id and sale_date
+        $insert_stmt = $conn->prepare("INSERT INTO sales (product_id, customer_id, quantity, unit_price, total, sale_date) VALUES (?, ?, ?, ?, ?, NOW())");
         if ($insert_stmt) {
-            $insert_stmt->bind_param("iidd", $product_id, $quantity, $unit_price, $total);
+            // "iiidd" means: integer, integer, integer, double, double
+            $insert_stmt->bind_param("iiidd", $product_id, $customer_id, $quantity, $unit_price, $total);
             
             if ($insert_stmt->execute()) {
                 $new_stock = $product['quantity'] - $quantity;
